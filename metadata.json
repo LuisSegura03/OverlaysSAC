@@ -1,0 +1,6 @@
+{
+  "name": "OBS Overlay Customizer",
+  "description": "Crea y configura overlays en tiempo real para OBS, con widgets de tiempos (Ao5), competidores y banderas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
