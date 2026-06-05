@@ -866,8 +866,8 @@ export default function App() {
                   </span>
                   
                   <span 
-                    className={`col-span-3 font-mono font-medium tracking-wide ${shouldStrike ? 'line-through opacity-40' : 'text-white'}`}
-                    style={{ color: shouldStrike ? undefined : s.textColor }}
+                    className={`col-span-3 font-mono font-medium tracking-wide ${shouldStrike ? 'line-through opacity-75' : ''}`}
+                    style={{ color: s.textColor }}
                   >
                     {time || '---'}
                   </span>
@@ -1011,7 +1011,7 @@ export default function App() {
                     return (
                       <span 
                         key={idx} 
-                        className={`truncate ${shouldStrike ? 'line-through opacity-40 font-normal text-slate-400' : 'text-slate-100 font-bold'}`}
+                        className={`truncate ${shouldStrike ? 'line-through opacity-75 font-normal text-slate-200' : 'text-slate-100 font-bold'}`}
                       >
                         {time || '---'}
                       </span>
@@ -1156,7 +1156,7 @@ export default function App() {
                     return (
                       <span 
                         key={tIdx} 
-                        className={`truncate ${shouldStrike ? 'line-through opacity-30 font-normal text-slate-500' : 'text-slate-200 font-semibold'}`}
+                        className={`truncate ${shouldStrike ? 'line-through opacity-75 font-normal text-slate-200 font-semibold' : 'text-slate-200 font-semibold'}`}
                       >
                         {time || '---'}
                       </span>
@@ -2423,8 +2423,8 @@ export default function App() {
                             >
                               <span className="opacity-40 text-[9px]">Solv #{idx + 1}</span>
                               <span 
-                                className={`font-medium ${shouldStrike ? 'line-through opacity-40 font-normal' : 'text-white'}`}
-                                style={{ color: shouldStrike ? undefined : s.textColor }}
+                                className={`font-medium ${shouldStrike ? 'line-through opacity-75 font-normal' : ''}`}
+                                style={{ color: s.textColor }}
                               >
                                 {time || '---'}
                               </span>
@@ -2543,7 +2543,7 @@ export default function App() {
                                 return (
                                   <span 
                                     key={idx} 
-                                    className={`truncate ${shouldStrike ? 'line-through opacity-45 font-normal text-slate-400' : 'text-slate-100 font-bold'}`}
+                                    className={`truncate ${shouldStrike ? 'line-through opacity-75 font-normal text-slate-200' : 'text-slate-100 font-bold'}`}
                                   >
                                     {time || '---'}
                                   </span>
@@ -2662,7 +2662,7 @@ export default function App() {
                                 return (
                                   <span 
                                     key={tIdx} 
-                                    className={`truncate ${shouldStrike ? 'line-through opacity-30 font-normal text-slate-500' : 'text-slate-200'}`}
+                                    className={`truncate ${shouldStrike ? 'line-through opacity-75 font-normal text-slate-200' : 'text-slate-200'}`}
                                   >
                                     {time || '---'}
                                   </span>
