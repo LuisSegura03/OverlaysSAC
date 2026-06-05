@@ -555,6 +555,20 @@ export default function App() {
           fontSize: 'base'
         };
         break;
+      case 'wca-sac':
+        styleUpdate = {
+          fontFamily: 'Space Grotesk',
+          backgroundColor: '#121c60',
+          bgOpacity: 100,
+          textColor: '#ffffff',
+          accentColor: '#facc15',
+          borderColor: '#ffffff',
+          borderWidth: 3,
+          borderRadius: 'lg',
+          shadow: 'overlay',
+          fontSize: 'lg'
+        };
+        break;
     }
 
     saveAndBroadcast({ styles: styleUpdate });
@@ -1889,7 +1903,7 @@ export default function App() {
               {/* Theme quick preset templates */}
               <div className="flex flex-col gap-2">
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Estilos de Plantillas Rápidas</span>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
                   <button
                     onClick={() => applyThemePreset('minimal-dark')}
                     className="p-2.5 bg-[#151a24] hover:bg-slate-800 text-xs font-bold rounded-lg text-slate-300 border border-[#2d3a4f] text-center"
@@ -1919,6 +1933,14 @@ export default function App() {
                     className="p-2.5 bg-[#1e1b4b] hover:bg-[#1e144a] text-xs font-bold rounded-lg text-[#fef08a] border border-[#3730a3] text-center"
                   >
                     Midnight Ruby
+                  </button>
+                  <button
+                    onClick={() => applyThemePreset('wca-sac')}
+                    className="p-2.5 bg-[#121c60] hover:bg-[#1a298c] text-xs font-bold rounded-lg text-white border-2 border-[#facc15] text-center flex flex-col items-center justify-center gap-0.5 shadow-[0_0_10px_rgba(250,204,21,0.2)]"
+                    title="Plantilla de Alto Contraste con los colores oficiales de WCA South American Championship"
+                  >
+                    <span className="text-emerald-400 text-[8px] tracking-widest uppercase font-black leading-none animate-pulse">SAC 2026</span>
+                    WCA SAC High Contrast
                   </button>
                 </div>
               </div>
