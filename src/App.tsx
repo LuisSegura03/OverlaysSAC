@@ -22,9 +22,34 @@ import {
   CheckCircle,
   FileSpreadsheet,
   Plus,
-  Trash2
+  Trash2,
+  Crown,
+  RotateCcw,
+  Activity,
+  Tv
 } from 'lucide-react';
 import { OverlayState, OverlayData, OverlayStyles, POPULAR_COUNTRIES, CountryPreset, Competitor } from './types';
+
+const PRESET_COPA_COUNTRIES = [
+  { name: "Colombia", code: "CO", flag: "https://flagcdn.com/w80/co.png" },
+  { name: "Ecuador", code: "EC", flag: "https://flagcdn.com/w80/ec.png" },
+  { name: "Guatemala", code: "GT", flag: "https://flagcdn.com/w80/gt.png" },
+  { name: "Argentina", code: "AR", flag: "https://flagcdn.com/w80/ar.png" },
+  { name: "Bolivia", code: "BO", flag: "https://flagcdn.com/w80/bo.png" },
+  { name: "Panamá", code: "PA", flag: "https://flagcdn.com/w80/pa.png" },
+  { name: "Paraguay", code: "PY", flag: "https://flagcdn.com/w80/py.png" },
+  { name: "Brasil", code: "BR", flag: "https://flagcdn.com/w80/br.png" },
+  { name: "Perú", code: "PE", flag: "https://flagcdn.com/w80/pe.png" },
+  { name: "República Dominicana", code: "DO", flag: "https://flagcdn.com/w80/do.png" },
+  { name: "Venezuela", code: "VE", flag: "https://flagcdn.com/w80/ve.png" },
+  { name: "Chile", code: "CL", flag: "https://flagcdn.com/w80/cl.png" },
+  { name: "Costa Rica", code: "CR", flag: "https://flagcdn.com/w80/cr.png" },
+  { name: "Estados Unidos", code: "US", flag: "https://flagcdn.com/w80/us.png" },
+  { name: "México", code: "MX", flag: "https://flagcdn.com/w80/mx.png" },
+  { name: "Uruguay", code: "UY", flag: "https://flagcdn.com/w80/uy.png" },
+  { name: "Canadá", code: "CA", flag: "https://flagcdn.com/w80/ca.png" },
+  { name: "España", code: "ES", flag: "https://flagcdn.com/w80/es.png" }
+];
 
 // Simple calculation helper
 interface ParsedTime {
@@ -122,7 +147,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const [copiedType, setCopiedType] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'content' | 'theme' | 'excel'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'theme' | 'excel' | 'copa'>('content');
   const [excelPaste, setExcelPaste] = useState('');
   const [excelError, setExcelError] = useState('');
   const [customFlagUrl, setCustomFlagUrl] = useState('');
@@ -233,6 +258,87 @@ export default function App() {
     };
   }, []);
 
+  const handleSelectWinner = (matchId: number, winnerNum: 1 | 2 | null) => {
+    if (!overlayState || !overlayState.copaState) return;
+    const currentCopa = { ...overlayState.copaState };
+    const updatedMatches = [...currentCopa.matches];
+    
+    // Find current match
+    const matchIdx = updatedMatches.findIndex(m => m.id === matchId);
+    if (matchIdx === -1) return;
+    
+    const match = { ...updatedMatches[matchIdx] };
+    match.winner = winnerNum;
+    updatedMatches[matchIdx] = match;
+
+    const winnerTeam = winnerNum === 1 ? match.team1 : winnerNum === 2 ? match.team2 : { name: `Ganador P${matchId}`, countryCode: "", flagUrl: "" };
+
+    // Calculate destination match
+    let destMatchId = 0;
+    let isTeam1InDest = true;
+
+    if (matchId >= 1 && matchId <= 8) {
+      destMatchId = Math.floor((matchId - 1) / 2) + 9;
+      isTeam1InDest = matchId % 2 !== 0;
+    } else if (matchId >= 9 && matchId <= 12) {
+      destMatchId = Math.floor((matchId - 9) / 2) + 13;
+      isTeam1InDest = matchId % 2 !== 0; // 9, 11 are Team 1, 10, 12 are Team 2 in destination
+    } else if (matchId >= 13 && matchId <= 14) {
+      destMatchId = 15;
+      isTeam1InDest = matchId === 13;
+    }
+
+    if (destMatchId > 0) {
+      const destIdx = updatedMatches.findIndex(m => m.id === destMatchId);
+      if (destIdx !== -1) {
+        const destMatch = { ...updatedMatches[destIdx] };
+        if (isTeam1InDest) {
+          destMatch.team1 = { ...winnerTeam };
+        } else {
+          destMatch.team2 = { ...winnerTeam };
+        }
+        destMatch.winner = null;
+        updatedMatches[destIdx] = destMatch;
+
+        clearSubsequentProgression(updatedMatches, destMatchId);
+      }
+    }
+
+    const updatedCopa = { ...currentCopa, matches: updatedMatches };
+    saveAndBroadcast({ copaState: updatedCopa });
+  };
+
+  const clearSubsequentProgression = (matchesArray: any[], matchId: number) => {
+    let nextMatchId = 0;
+    let isTeam1InNext = true;
+    if (matchId >= 1 && matchId <= 8) {
+      nextMatchId = Math.floor((matchId - 1) / 2) + 9;
+      isTeam1InNext = matchId % 2 !== 0;
+    } else if (matchId >= 9 && matchId <= 12) {
+      nextMatchId = Math.floor((matchId - 9) / 2) + 13;
+      isTeam1InNext = matchId % 2 !== 0;
+    } else if (matchId >= 13 && matchId <= 14) {
+      nextMatchId = 15;
+      isTeam1InNext = matchId === 13;
+    }
+
+    if (nextMatchId > 0) {
+      const nextIdx = matchesArray.findIndex(m => m.id === nextMatchId);
+      if (nextIdx !== -1) {
+        const nextMatch = { ...matchesArray[nextIdx] };
+        nextMatch.winner = null;
+        const placeholder = { name: `Ganador P${matchId}`, countryCode: "", flagUrl: "" };
+        if (isTeam1InNext) {
+          nextMatch.team1 = placeholder;
+        } else {
+          nextMatch.team2 = placeholder;
+        }
+        matchesArray[nextIdx] = nextMatch;
+        clearSubsequentProgression(matchesArray, nextMatchId);
+      }
+    }
+  };
+
   // Update custom flag input whenever the editing player selection or state updates
   useEffect(() => {
     if (!overlayState) return;
@@ -255,6 +361,7 @@ export default function App() {
     activeCompetitorId2?: string;
     isVisible?: boolean;
     currentCategoryId?: string;
+    copaState?: any;
   }) => {
     if (!overlayState) return;
 
@@ -291,7 +398,8 @@ export default function App() {
       activeCompetitorId: activeId,
       activeCompetitorId2: activeId2,
       isVisible: activeIsVisible,
-      currentCategoryId: activeCategoryId
+      currentCategoryId: activeCategoryId,
+      copaState: updatedData.copaState !== undefined ? updatedData.copaState : overlayState.copaState
     };
 
     try {
@@ -706,11 +814,11 @@ export default function App() {
     const s = overlayState.styles;
     const d = overlayState.data;
 
-    // Support layout URL override parameter: ?layout=single | versus | ranking
+    // Support layout URL override parameter: ?layout=single | versus | ranking | copa | copa_match
     const queryParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const urlLayout = queryParams?.get('layout');
-    const effectiveLayout = (urlLayout === 'single' || urlLayout === 'versus' || urlLayout === 'ranking')
-      ? urlLayout
+    const effectiveLayout = (urlLayout === 'single' || urlLayout === 'versus' || urlLayout === 'ranking' || urlLayout === 'copa' || urlLayout === 'copa_match')
+      ? urlLayout as any
       : s.layout;
 
     const fontClassMap = {
@@ -1177,6 +1285,349 @@ export default function App() {
       );
     };
 
+    const renderCopaLayout = () => {
+      const copa = overlayState.copaState || {
+        tournamentName: "COPA DE NACIONES",
+        subTitle: "domingo, 14 de junio de 2026",
+        mode: "16teams",
+        matches: [],
+        activeMatchId: 1,
+        currentPhase: "octavos"
+      };
+
+      let phaseLabel = "OCTAVOS DE FINAL";
+      let displayMatches = copa.matches.filter(m => m.id >= 1 && m.id <= 8);
+
+      if (copa.currentPhase === 'cuartos') {
+        phaseLabel = "CUARTOS DE FINAL";
+        displayMatches = copa.matches.filter(m => m.id >= m.id && m.id <= 12 && m.id >= 9);
+      } else if (copa.currentPhase === 'semis') {
+        phaseLabel = "SEMIFINALES";
+        displayMatches = copa.matches.filter(m => m.id >= m.id && m.id <= 14 && m.id >= 13);
+      } else if (copa.currentPhase === 'final') {
+        phaseLabel = "GRAN FINAL";
+        displayMatches = copa.matches.filter(m => m.id === 15);
+      } else if (copa.currentPhase === 'champion') {
+        phaseLabel = "CAMPEÓN DE LA COPA";
+        displayMatches = [];
+      }
+
+      const finalMatch = (copa.matches || []).find(m => m.id === 15);
+      const championTeam = finalMatch?.winner === 1 ? finalMatch.team1 : finalMatch?.winner === 2 ? finalMatch.team2 : null;
+      const activeMatch = (copa.matches || []).find(m => m.id === copa.activeMatchId);
+
+      return (
+        <div 
+          className="w-full flex flex-col items-center select-none"
+          style={{ 
+            fontFamily: s.fontFamily === 'Inter' ? '"Inter", sans-serif' : s.fontFamily === 'Space Grotesk' ? '"Space Grotesk", sans-serif' : s.fontFamily === 'JetBrains Mono' ? '"JetBrains Mono", monospace' : s.fontFamily === 'Outfit' ? '"Outfit", sans-serif' : '"Playfair Display", serif'
+          }}
+        >
+          {/* Main Tournament Banner */}
+          <div className="w-full max-w-6xl bg-[#14170f] border border-[#27281d] rounded-2xl overflow-hidden shadow-2xl mb-6">
+            <div className="px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-amber-500/10 border border-[#ffd200]/40 rounded-xl flex items-center justify-center text-[#ffd200]">
+                  <Trophy className="w-7 h-7" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-black text-white tracking-widest uppercase">
+                    {copa.tournamentName || "COPA DE NACIONES"}
+                  </h1>
+                  <span className="text-[10px] font-bold text-[#ffd200] tracking-widest">{phaseLabel}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pr-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs text-slate-300 font-bold uppercase tracking-wider">LIVE BRACKET</span>
+              </div>
+            </div>
+            {/* The signature yellow sub-bar */}
+            <div className="bg-[#ffd200] py-2 px-6 flex items-center justify-between text-black font-extrabold text-sm border-t border-[#ffd200]">
+              <div className="flex items-center gap-1.5 uppercase tracking-wide">
+                <span>🗓️ {copa.subTitle || "domingo, 14 de junio de 2026"}</span>
+              </div>
+              <span className="text-[10px] font-black tracking-widest uppercase bg-black text-white px-2.5 py-0.5 rounded">
+                WCA DELEGADO OFICIAL
+              </span>
+            </div>
+          </div>
+
+          {/* Grid of Matches or Champion Banner */}
+          {copa.currentPhase === 'champion' || (copa.currentPhase === 'final' && finalMatch?.winner) ? (
+            <div className="w-full max-w-3xl bg-[#1d2016] border-2 border-[#ffd200] rounded-2xl p-8 flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                <Trophy className="w-[300px] h-[300px] text-[#ffd200]" />
+              </div>
+              
+              <Crown className="w-20 h-20 text-[#ffd200] animate-bounce mb-4 animate-pulse" />
+              <h2 className="text-3xl font-black text-[#ffd200] tracking-widest uppercase">¡CAMPEÓN COPA DE NACIONES!</h2>
+              <p className="text-slate-400 text-xs mt-1 uppercase tracking-widest">{copa.tournamentName}</p>
+              
+              {championTeam ? (
+                <div className="mt-8 flex flex-col items-center">
+                  {championTeam.flagUrl && (
+                    <img 
+                      src={championTeam.flagUrl} 
+                      className="w-40 h-24 object-cover rounded-xl shadow-2xl border-4 border-[#ffd200] mb-6 animate-pulse" 
+                      alt="" 
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                    />
+                  )}
+                  <div className="text-4xl font-black text-white px-10 py-3 bg-[#14170f] rounded-2xl border border-[#27281d] shadow-lg tracking-wider">
+                    {championTeam.name}
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-6 text-[#ffd200]/90 font-bold italic animate-pulse">Esperando el resultado de la final...</div>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-6xl">
+              {(displayMatches || []).map((match) => {
+                const isActive = copa.activeMatchId === match.id;
+                const isWinner1 = match.winner === 1;
+                const isWinner2 = match.winner === 2;
+                const hasWinner = match.winner !== null;
+
+                return (
+                  <div 
+                    key={match.id}
+                    className={`bg-[#27281d] border rounded-xl p-4 flex flex-col justify-between shadow-xl transition-all duration-300 relative ${
+                      isActive ? 'border-[#ffd200] ring-2 ring-[#ffd200]/25 scale-102 bg-[#2d3023]' : 'border-[#3a3c2e]'
+                    }`}
+                  >
+                    {/* Active Match Tag */}
+                    {isActive && (
+                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#ffd200] text-black font-extrabold text-[8px] px-2.5 py-0.5 rounded-full tracking-widest uppercase border border-white/20 shadow z-10 animate-pulse">
+                        EN CURSO
+                      </div>
+                    )}
+
+                    {/* Match ID / Header */}
+                    <div className="flex justify-between items-center pb-2 mb-3 border-b border-[#3a3c2e]/45">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">PARTIDO #{match.id}</span>
+                      {hasWinner && (
+                        <span className="text-[8px] font-black bg-[#ffd200]/15 text-[#ffd200] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                          FINALIZADO
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Teams face-to-face as in the picture */}
+                    <div className="flex items-center justify-between gap-2 min-h-[90px]">
+                      {/* Team 1 */}
+                      <div className="flex flex-col items-center flex-1 text-center select-none">
+                        <span className={`text-xs font-black text-white tracking-wide truncate max-w-[90px] mb-2 ${
+                          isWinner2 ? 'line-through opacity-75 font-normal text-slate-200' : ''
+                        }`}>
+                          {match.team1.name || "TBD"}
+                        </span>
+                        {match.team1.flagUrl ? (
+                          <div className="relative">
+                            <img 
+                              src={match.team1.flagUrl} 
+                              alt="" 
+                              className={`w-14 h-9 object-cover rounded shadow-md border border-[#3a3c2e] ${
+                                isWinner2 ? 'opacity-75 grayscale-30' : ''
+                              }`}
+                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                            />
+                            {isWinner1 && (
+                              <Crown className="w-5 h-5 text-[#ffd200] absolute -top-3.5 -right-2.5 rotate-12 drop-shadow-md animate-bounce" />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="w-14 h-9 rounded bg-[#1d2016] border border-[#3a3c2e] flex items-center justify-center text-slate-500 font-extrabold text-xs">?</div>
+                        )}
+                      </div>
+
+                      {/* VS separator */}
+                      <div className="font-black text-xs text-[#ffd200]/80 shrink-0 px-2 py-1 bg-black/25 rounded-md select-none flex items-center justify-center">
+                        <span>VS</span>
+                      </div>
+
+                      {/* Team 2 */}
+                      <div className="flex flex-col items-center flex-1 text-center select-none">
+                        <span className={`text-xs font-black text-white tracking-wide truncate max-w-[90px] mb-2 ${
+                          isWinner1 ? 'line-through opacity-75 font-normal text-slate-200' : ''
+                        }`}>
+                          {match.team2.name || "TBD"}
+                        </span>
+                        {match.team2.flagUrl ? (
+                          <div className="relative">
+                            <img 
+                              src={match.team2.flagUrl} 
+                              alt="" 
+                              className={`w-14 h-9 object-cover rounded shadow-md border border-[#3a3c2e] ${
+                                isWinner1 ? 'opacity-75 grayscale-30' : ''
+                              }`}
+                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                            />
+                            {isWinner2 && (
+                              <Crown className="w-5 h-5 text-[#ffd200] absolute -top-3.5 -right-2.5 rotate-12 drop-shadow-md animate-bounce" />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="w-14 h-9 rounded bg-[#1d2016] border border-[#3a3c2e] flex items-center justify-center text-slate-500 font-extrabold text-xs">?</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Bottom Championship Caption explicitly styled */}
+                    <div className="text-[7.5px] text-center text-slate-400 tracking-wider font-extrabold uppercase mt-4 pt-2 border-t border-[#3a3c2e]/25">
+                      WCA SOUTH AMERICAN CHAMPIONSHIP 2026
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const renderCopaMatchLayout = () => {
+      const copa = overlayState.copaState || {
+        tournamentName: "COPA DE NACIONES",
+        subTitle: "domingo, 14 de junio de 2026",
+        mode: "16teams",
+        matches: [],
+        activeMatchId: 1,
+        currentPhase: "octavos"
+      };
+
+      let phaseLabel = "OCTAVOS DE FINAL";
+      if (copa.currentPhase === 'cuartos') {
+        phaseLabel = "CUARTOS DE FINAL";
+      } else if (copa.currentPhase === 'semis') {
+        phaseLabel = "SEMIFINALES";
+      } else if (copa.currentPhase === 'final') {
+        phaseLabel = "GRAN FINAL";
+      } else if (copa.currentPhase === 'champion') {
+        phaseLabel = "CAMPEÓN DE LA COPA";
+      }
+
+      const activeMatch = (copa.matches || []).find(m => m.id === copa.activeMatchId);
+
+      return (
+        <div 
+          className="w-full flex flex-col items-center select-none"
+          style={{ 
+            fontFamily: s.fontFamily === 'Inter' ? '"Inter", sans-serif' : s.fontFamily === 'Space Grotesk' ? '"Space Grotesk", sans-serif' : s.fontFamily === 'JetBrains Mono' ? '"JetBrains Mono", monospace' : s.fontFamily === 'Outfit' ? '"Outfit", sans-serif' : '"Playfair Display", serif'
+          }}
+        >
+          {/* Main Tournament Banner */}
+          <div className="w-full max-w-6xl bg-[#14170f] border border-[#27281d] rounded-2xl overflow-hidden shadow-2xl mb-6">
+            <div className="px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-amber-500/10 border border-[#ffd200]/40 rounded-xl flex items-center justify-center text-[#ffd200]">
+                  <Trophy className="w-7 h-7" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-black text-white tracking-widest uppercase">
+                    {copa.tournamentName || "COPA DE NACIONES"}
+                  </h1>
+                  <span className="text-[10px] font-bold text-[#ffd200] tracking-widest">{phaseLabel}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pr-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs text-slate-300 font-bold uppercase tracking-wider">PARTIDO EN CURSO</span>
+              </div>
+            </div>
+            {/* The signature yellow sub-bar */}
+            <div className="bg-[#ffd200] py-2 px-6 flex items-center justify-between text-black font-extrabold text-sm border-t border-[#ffd200]">
+              <div className="flex items-center gap-1.5 uppercase tracking-wide">
+                <span>🗓️ {copa.subTitle || "domingo, 14 de junio de 2026"}</span>
+              </div>
+              <span className="text-[10px] font-black tracking-widest uppercase bg-black text-white px-2.5 py-0.5 rounded">
+                WCA DELEGADO OFICIAL
+              </span>
+            </div>
+          </div>
+
+          {/* Active Match Showcase */}
+          {activeMatch ? (
+            <div className="w-full max-w-6xl bg-gradient-to-r from-[#171a11] via-[#24271a] to-[#171a11] border-2 border-[#ffd200] rounded-2xl p-6 shadow-2xl relative overflow-hidden flex flex-col items-center">
+              {/* Top pulse highlighter */}
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-[#ffd200] to-transparent animate-pulse" />
+              
+              {/* LIVE badge */}
+              <div className="flex items-center gap-2 mb-4 bg-rose-600 px-3.5 py-1 rounded-full text-white font-black text-[10px] uppercase tracking-widest shadow border border-rose-500 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-white block animate-ping" />
+                <span>PARTIDO EN CURSO • # {activeMatch.id}</span>
+              </div>
+
+              <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-6 px-4 md:px-12">
+                {/* Team 1 Panel */}
+                <div className="flex flex-col sm:flex-row items-center gap-4 flex-1 justify-end text-center sm:text-right w-full">
+                  <div className="order-2 sm:order-1">
+                    <span className="text-xl md:text-2xl font-black text-white block tracking-wide uppercase">
+                      {activeMatch.team1.name || "TBD"}
+                    </span>
+                    <span className="text-[10px] font-bold text-[#ffd200] tracking-widest uppercase block opacity-85 mt-0.5">
+                      {activeMatch.team1.countryCode || "E1"}
+                    </span>
+                  </div>
+                  {activeMatch.team1.flagUrl ? (
+                    <img 
+                      src={activeMatch.team1.flagUrl} 
+                      className="w-20 h-12 md:w-24 md:h-15 object-cover rounded-xl shadow-lg border-2 border-[#3a3c2e] order-1 sm:order-2 shrink-0 select-none" 
+                      alt=""
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="w-20 h-12 md:w-24 md:h-15 rounded-xl bg-[#0c0e08] border-2 border-[#3a3c2e] flex items-center justify-center text-slate-500 font-extrabold text-xl order-1 sm:order-2 shrink-0">?</div>
+                  )}
+                </div>
+
+                {/* VS Divider */}
+                <div className="flex flex-col items-center justify-center shrink-0 min-w-[100px] bg-black/45 border border-[#3a3c2e] px-6 py-4 rounded-2xl shadow-inner select-none">
+                  <span className="text-xl font-black text-[#ffd200] tracking-widest">VS</span>
+                </div>
+
+                {/* Team 2 Panel */}
+                <div className="flex flex-col sm:flex-row items-center gap-4 flex-1 justify-start text-center sm:text-left w-full">
+                  {activeMatch.team2.flagUrl ? (
+                    <img 
+                      src={activeMatch.team2.flagUrl} 
+                      className="w-20 h-12 md:w-24 md:h-15 object-cover rounded-xl shadow-lg border-2 border-[#3a3c2e] shrink-0 select-none" 
+                      alt=""
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="w-20 h-12 md:w-24 md:h-15 rounded-xl bg-[#0c0e08] border-2 border-[#3a3c2e] flex items-center justify-center text-slate-500 font-extrabold text-xl shrink-0">?</div>
+                  )}
+                  <div>
+                    <span className="text-xl md:text-2xl font-black text-white block tracking-wide uppercase">
+                      {activeMatch.team2.name || "TBD"}
+                    </span>
+                    <span className="text-[10px] font-bold text-[#ffd200] tracking-widest uppercase block opacity-85 mt-0.5">
+                      {activeMatch.team2.countryCode || "E2"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status/Delegation details */}
+              <div className="w-full text-center text-[8px] text-[#ffd200]/70 tracking-widest font-extrabold uppercase mt-5 pt-3 border-t border-[#3a3c2e]/45">
+                FASE EN PANTALLA: {phaseLabel} • COPA DE NACIONES OFICIAL
+              </div>
+            </div>
+          ) : (
+            <div className="w-full max-w-6xl bg-[#14170f] border border-[#27281d] rounded-2xl p-16 flex flex-col items-center justify-center text-center shadow-2xl">
+              <Trophy className="w-16 h-16 text-[#ffd200]/30 mb-4 animate-pulse" />
+              <h2 className="text-xl font-black text-white uppercase tracking-widest">SIN PARTIDO EN CURSO</h2>
+              <p className="text-slate-400 text-xs uppercase tracking-widest mt-2">
+                Selecciona o activa un partido en curso en el panel de control.
+              </p>
+            </div>
+          )}
+        </div>
+      );
+    };
+
     const isVisible = overlayState.isVisible !== false;
 
     return (
@@ -1188,6 +1639,10 @@ export default function App() {
       >
         {effectiveLayout === 'ranking' ? (
           renderRankingLayout()
+        ) : effectiveLayout === 'copa' ? (
+          renderCopaLayout()
+        ) : effectiveLayout === 'copa_match' ? (
+          renderCopaMatchLayout()
         ) : effectiveLayout === 'versus' ? (
           s.versusLayoutType === 'table' ? (
             renderTableLayout()
@@ -1397,6 +1852,18 @@ export default function App() {
               <FileSpreadsheet className="w-4 h-4" />
               3. Importar Excel/DB
             </button>
+            <button
+              id="tab-btn-copa"
+              onClick={() => setActiveTab('copa')}
+              className={`flex-1 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all ${
+                activeTab === 'copa'
+                  ? 'bg-amber-500 text-black font-extrabold shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Trophy className="w-4 h-4" />
+              4. Copa de Naciones
+            </button>
           </div>
 
           {/* Tab Content 1: Competitor Profile and Times */}
@@ -1448,6 +1915,26 @@ export default function App() {
                       }`}
                     >
                       Ranking (Todos)
+                    </button>
+                    <button
+                      onClick={() => syncStyleField('layout', 'copa')}
+                      className={`px-3 py-1 font-bold text-[10px] rounded transition-all cursor-pointer ${
+                        s.layout === 'copa'
+                          ? 'bg-emerald-500 text-slate-950 font-extrabold shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      🏆 Copa: Cuadrícula
+                    </button>
+                    <button
+                      onClick={() => syncStyleField('layout', 'copa_match')}
+                      className={`px-3 py-1 font-bold text-[10px] rounded transition-all cursor-pointer ${
+                        s.layout === 'copa_match'
+                          ? 'bg-rose-600 text-white font-extrabold shadow-sm animate-pulse'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      🥊 Copa: Partido Activo
                     </button>
                   </div>
                 </div>
@@ -2275,6 +2762,401 @@ export default function App() {
             </div>
           )}
 
+          {activeTab === 'copa' && (
+            <div className="bg-[#0c0f16] border border-[#1e293b] rounded-2xl p-6 flex flex-col gap-6 animate-fade-in">
+              <div className="flex items-center justify-between border-b border-[#1e293b]/60 pb-4">
+                <div>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-amber-500 animate-pulse" /> Copa de Naciones - Gestión
+                  </h3>
+                  <span className="text-xs text-slate-400 block mt-1">
+                    Controla los cruces de eliminatoria directa, define marcadores y promueve ganadores.
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      if (overlayState?.copaState) {
+                        saveAndBroadcast({
+                          styles: { ...overlayState.styles, layout: 'copa' }
+                        });
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                      overlayState?.styles.layout === 'copa'
+                        ? 'bg-emerald-500 text-slate-950 shadow-md border border-emerald-400'
+                        : 'bg-[#15202f] text-emerald-400 border border-emerald-500/20 hover:bg-[#1a2d44]'
+                    }`}
+                  >
+                    <Tv className="w-3.5 h-3.5" />
+                    {overlayState?.styles.layout === 'copa' ? '📺 Árbol Directo Activo' : 'Mostrar Árbol/Bracket'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (overlayState?.copaState) {
+                        saveAndBroadcast({
+                          styles: { ...overlayState.styles, layout: 'copa_match' }
+                        });
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                      overlayState?.styles.layout === 'copa_match'
+                        ? 'bg-rose-600 text-white shadow-lg border border-rose-500 animate-pulse'
+                        : 'bg-[#15202f] text-rose-400 border border-rose-500/20 hover:bg-[#1a2d44]'
+                    }`}
+                  >
+                    <Activity className="w-3.5 h-3.5" />
+                    {overlayState?.styles.layout === 'copa_match' ? '🔥 Partido En Vivo Activo' : 'Mostrar Partido En Vivo'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Tournament Meta Info */}
+              <div id="tournament-info-fields" className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#10141e] p-4 rounded-xl border border-[#1e293b]">
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs font-semibold text-slate-300">Nombre del Torneo</span>
+                  <input
+                    type="text"
+                    value={overlayState?.copaState?.tournamentName || ''}
+                    onChange={(e) => {
+                      const updatedCopa = { ...overlayState?.copaState, tournamentName: e.target.value };
+                      saveAndBroadcast({ copaState: updatedCopa });
+                    }}
+                    placeholder="COPA DE NACIONES"
+                    className="w-full bg-[#080a0f] border border-[#2d3a4f] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500 font-bold uppercase tracking-wider"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs font-semibold text-slate-300">Subtítulo / Fecha</span>
+                  <input
+                    type="text"
+                    value={overlayState?.copaState?.subTitle || ''}
+                    onChange={(e) => {
+                      const updatedCopa = { ...overlayState?.copaState, subTitle: e.target.value };
+                      saveAndBroadcast({ copaState: updatedCopa });
+                    }}
+                    placeholder="domingo, 14 de junio de 2026"
+                    className="w-full bg-[#080a0f] border border-[#2d3a4f] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+                  />
+                </div>
+              </div>
+
+              {/* Phase buttons selector for OBS / Dashboard focus */}
+              <div id="bracket-phase-navigator" className="flex flex-col gap-2">
+                <span className="text-xs font-semibold text-slate-300">Control de Fase Activa en Pantalla (Overlay OBS)</span>
+                <div className="grid grid-cols-3 md:grid-cols-5 gap-1.5 bg-[#10141e] p-1.5 rounded-xl border border-[#1e293b]">
+                  {[
+                    { id: 'octavos', label: 'Octavos (Grid 8)' },
+                    { id: 'cuartos', label: 'Cuartos (Grid 4)' },
+                    { id: 'semis', label: 'Semis (Grid 2)' },
+                    { id: 'final', label: 'Final (Grid 1)' },
+                    { id: 'champion', label: '👑 Campeón' }
+                  ].map((phase) => {
+                    const isActive = overlayState?.copaState?.currentPhase === phase.id;
+                    return (
+                      <button
+                        key={phase.id}
+                        onClick={() => {
+                          const updatedCopa = { ...overlayState?.copaState, currentPhase: phase.id };
+                          saveAndBroadcast({ copaState: updatedCopa });
+                        }}
+                        className={`py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                          isActive
+                            ? 'bg-amber-500 text-black shadow-md'
+                            : 'bg-black/35 text-slate-400 hover:text-white hover:bg-black/60'
+                        }`}
+                      >
+                        {phase.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Matches Matrix lists */}
+              <div id="bracket-matches-list" className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    Editar Partidos - {
+                      overlayState?.copaState?.currentPhase === 'octavos' ? 'Octavos de Final' :
+                      overlayState?.copaState?.currentPhase === 'cuartos' ? 'Cuartos de Final' :
+                      overlayState?.copaState?.currentPhase === 'semis' ? 'Semifinales' :
+                      overlayState?.copaState?.currentPhase === 'final' ? 'Gran Final' : 'Pantalla de Campeón Activa'
+                    }
+                  </span>
+                  
+                  {/* Reset Copa Button */}
+                  <button
+                    onClick={() => {
+                      if (window.confirm("¿Estás seguro de que deseas reiniciar todos los marcadores y países de la copa a los valores iniciales de la Copa de Naciones?")) {
+                        const DEFAULT_COPA_STATE_CLIENT = {
+                          tournamentName: "COPA DE NACIONES",
+                          subTitle: "domingo, 14 de junio de 2026",
+                          mode: "16teams" as const,
+                          activeMatchId: 1,
+                          currentPhase: "octavos" as const,
+                          matches: [
+                            { id: 1, team1: { name: "Ecuador", countryCode: "EC", flagUrl: "https://flagcdn.com/w80/ec.png" }, team2: { name: "Guatemala", countryCode: "GT", flagUrl: "https://flagcdn.com/w80/gt.png" }, winner: null },
+                            { id: 2, team1: { name: "Argentina", countryCode: "AR", flagUrl: "https://flagcdn.com/w80/ar.png" }, team2: { name: "Bolivia", countryCode: "BO", flagUrl: "https://flagcdn.com/w80/bo.png" }, winner: null },
+                            { id: 3, team1: { name: "Panamá", countryCode: "PA", flagUrl: "https://flagcdn.com/w80/pa.png" }, team2: { name: "Paraguay", countryCode: "PY", flagUrl: "https://flagcdn.com/w80/py.png" }, winner: null },
+                            { id: 4, team1: { name: "Brasil 1", countryCode: "BR", flagUrl: "https://flagcdn.com/w80/br.png" }, team2: { name: "Brasil 2", countryCode: "BR", flagUrl: "https://flagcdn.com/w80/br.png" }, winner: null },
+                            { id: 5, team1: { name: "Perú", countryCode: "PE", flagUrl: "https://flagcdn.com/w80/pe.png" }, team2: { name: "República Dominicana", countryCode: "DO", flagUrl: "https://flagcdn.com/w80/do.png" }, winner: null },
+                            { id: 6, team1: { name: "Colombia 1", countryCode: "CO", flagUrl: "https://flagcdn.com/w80/co.png" }, team2: { name: "Colombia 2", countryCode: "CO", flagUrl: "https://flagcdn.com/w80/co.png" }, winner: null },
+                            { id: 7, team1: { name: "Venezuela", countryCode: "VE", flagUrl: "https://flagcdn.com/w80/ve.png" }, team2: { name: "Chile", countryCode: "CL", flagUrl: "https://flagcdn.com/w80/cl.png" }, winner: null },
+                            { id: 8, team1: { name: "Colombia 3", countryCode: "CO", flagUrl: "https://flagcdn.com/w80/co.png" }, team2: { name: "Costa Rica", countryCode: "CR", flagUrl: "https://flagcdn.com/w80/cr.png" }, winner: null },
+
+                            { id: 9, team1: { name: "Ganador Octavos 1", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Octavos 2", countryCode: "", flagUrl: "" }, winner: null },
+                            { id: 10, team1: { name: "Ganador Octavos 3", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Octavos 4", countryCode: "", flagUrl: "" }, winner: null },
+                            { id: 11, team1: { name: "Ganador Octavos 5", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Octavos 6", countryCode: "", flagUrl: "" }, winner: null },
+                            { id: 12, team1: { name: "Ganador Octavos 7", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Octavos 8", countryCode: "", flagUrl: "" }, winner: null },
+
+                            { id: 13, team1: { name: "Ganador Cuartos 1", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Cuartos 2", countryCode: "", flagUrl: "" }, winner: null },
+                            { id: 14, team1: { name: "Ganador Cuartos 3", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Cuartos 4", countryCode: "", flagUrl: "" }, winner: null },
+
+                            { id: 15, team1: { name: "Ganador Semis 1", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Semis 2", countryCode: "", flagUrl: "" }, winner: null }
+                          ]
+                        };
+                        saveAndBroadcast({ copaState: DEFAULT_COPA_STATE_CLIENT });
+                      }
+                    }}
+                    className="text-[10px] font-extrabold text-rose-400 hover:text-rose-300 transition-colors uppercase gap-1 cursor-pointer flex items-center"
+                  >
+                    <RotateCcw className="w-3 h-3" /> Reiniciar Torneo
+                  </button>
+                </div>
+
+                {overlayState?.copaState?.currentPhase === 'champion' ? (
+                  <div className="bg-[#10141e] border border-[#1e293b] p-8 rounded-xl text-center animate-pulse">
+                    <Crown className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+                    <span className="text-white text-sm font-bold block mb-1 font-space-grotesk tracking-wide">Pantalla de Campeón en Directo</span>
+                    <p className="text-xs text-slate-400 max-w-md mx-auto">
+                      El overlay actualmente muestra al campeón nacional de la final en pantalla grande. Modifica los ganadores del partido de la Final para coronar a un competidor.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {(overlayState?.copaState?.matches || [])
+                      .filter(m => {
+                        const phase = overlayState?.copaState?.currentPhase;
+                        if (phase === 'octavos') return m.id >= 1 && m.id <= 8;
+                        if (phase === 'cuartos') return m.id >= 9 && m.id <= 12;
+                        if (phase === 'semis') return m.id >= 13 && m.id <= 14;
+                        if (phase === 'final') return m.id === 15;
+                        return false;
+                      })
+                      .map((match) => {
+                        const isMatchActive = overlayState?.copaState?.activeMatchId === match.id;
+                        return (
+                          <div 
+                            key={match.id}
+                            className={`bg-[#10141e] border rounded-xl p-4 flex flex-col gap-3 transition-colors ${
+                              isMatchActive ? 'border-amber-500' : 'border-[#1e293b]'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between pb-2 border-b border-[#1e293b]/55">
+                              <span className="text-xs font-extrabold text-amber-400">PARTIDO #{match.id}</span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    const updatedCopa = { ...overlayState?.copaState, activeMatchId: match.id };
+                                    saveAndBroadcast({ copaState: updatedCopa });
+                                  }}
+                                  className={`px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider cursor-pointer ${
+                                    isMatchActive
+                                      ? 'bg-amber-500 text-black shadow-sm'
+                                      : 'bg-black text-slate-400 hover:text-white'
+                                  }`}
+                                >
+                                  {isMatchActive ? '★ En Curso' : 'Marcar En Curso'}
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Teams Editor Inputs Side-by-Side */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Team 1 Editors */}
+                              <div className="bg-black/30 p-3 rounded-lg border border-[#1e293b]/40 flex flex-col gap-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Equipo 1</span>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    value={match.team1.name}
+                                    onChange={(e) => {
+                                      const updatedMatches = [...overlayState.copaState.matches];
+                                      const idx = updatedMatches.findIndex(m => m.id === match.id);
+                                      updatedMatches[idx].team1.name = e.target.value;
+                                      saveAndBroadcast({ copaState: { ...overlayState.copaState, matches: updatedMatches } });
+                                    }}
+                                    placeholder="Nombre del País/Equipo"
+                                    className="w-full bg-[#080a0f] border border-[#2d3a4f] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                                  />
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-[8px] font-bold text-slate-400">Cód. Bandera (e.g. EC, GT)</span>
+                                    <input
+                                      type="text"
+                                      value={match.team1.countryCode || ''}
+                                      onChange={(e) => {
+                                        const val = e.target.value.toLowerCase().trim();
+                                        const updatedMatches = [...overlayState.copaState.matches];
+                                        const idx = updatedMatches.findIndex(m => m.id === match.id);
+                                        updatedMatches[idx].team1.countryCode = e.target.value.toUpperCase();
+                                        if (val) {
+                                          updatedMatches[idx].team1.flagUrl = `https://flagcdn.com/w80/${val}.png`;
+                                        }
+                                        saveAndBroadcast({ copaState: { ...overlayState.copaState, matches: updatedMatches } });
+                                      }}
+                                      placeholder="EC"
+                                      className="w-full bg-[#080a0f] border border-[#2d3a4f] rounded-lg px-2.5 py-1 text-xs text-white uppercase focus:outline-none"
+                                    />
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-[8px] font-bold text-slate-400">Pre-selección</span>
+                                    <select
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (!val) return;
+                                        const preset = PRESET_COPA_COUNTRIES.find(c => c.code === val);
+                                        if (preset) {
+                                          const updatedMatches = [...overlayState.copaState.matches];
+                                          const idx = updatedMatches.findIndex(m => m.id === match.id);
+                                          updatedMatches[idx].team1.name = preset.name;
+                                          updatedMatches[idx].team1.countryCode = preset.code;
+                                          updatedMatches[idx].team1.flagUrl = preset.flag;
+                                          saveAndBroadcast({ copaState: { ...overlayState.copaState, matches: updatedMatches } });
+                                        }
+                                      }}
+                                      className="w-full bg-[#080a0f] border border-[#2d3a4f] rounded-lg px-1.5 py-1 text-[10px] text-slate-300 focus:outline-none"
+                                    >
+                                      <option value="">Seleccionar...</option>
+                                      {PRESET_COPA_COUNTRIES.map((c) => (
+                                        <option key={c.code} value={c.code}>{c.name}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Team 2 Editors */}
+                              <div className="bg-black/30 p-3 rounded-lg border border-[#1e293b]/40 flex flex-col gap-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Equipo 2</span>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    value={match.team2.name}
+                                    onChange={(e) => {
+                                      const updatedMatches = [...overlayState.copaState.matches];
+                                      const idx = updatedMatches.findIndex(m => m.id === match.id);
+                                      updatedMatches[idx].team2.name = e.target.value;
+                                      saveAndBroadcast({ copaState: { ...overlayState.copaState, matches: updatedMatches } });
+                                    }}
+                                    placeholder="Nombre del País/Equipo"
+                                    className="w-full bg-[#080a0f] border border-[#2d3a4f] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                                  />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-[8px] font-bold text-slate-400">Cód. Bandera (e.g. BO, PY)</span>
+                                    <input
+                                      type="text"
+                                      value={match.team2.countryCode || ''}
+                                      onChange={(e) => {
+                                        const val = e.target.value.toLowerCase().trim();
+                                        const updatedMatches = [...overlayState.copaState.matches];
+                                        const idx = updatedMatches.findIndex(m => m.id === match.id);
+                                        updatedMatches[idx].team2.countryCode = e.target.value.toUpperCase();
+                                        if (val) {
+                                          updatedMatches[idx].team2.flagUrl = `https://flagcdn.com/w80/${val}.png`;
+                                        }
+                                        saveAndBroadcast({ copaState: { ...overlayState.copaState, matches: updatedMatches } });
+                                      }}
+                                      placeholder="BO"
+                                      className="w-full bg-[#080a0f] border border-[#2d3a4f] rounded-lg px-2.5 py-1 text-xs text-white uppercase focus:outline-none"
+                                    />
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-[8px] font-bold text-slate-400">Pre-selección</span>
+                                    <select
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (!val) return;
+                                        const preset = PRESET_COPA_COUNTRIES.find(c => c.code === val);
+                                        if (preset) {
+                                          const updatedMatches = [...overlayState.copaState.matches];
+                                          const idx = updatedMatches.findIndex(m => m.id === match.id);
+                                          updatedMatches[idx].team2.name = preset.name;
+                                          updatedMatches[idx].team2.countryCode = preset.code;
+                                          updatedMatches[idx].team2.flagUrl = preset.flag;
+                                          saveAndBroadcast({ copaState: { ...overlayState.copaState, matches: updatedMatches } });
+                                        }
+                                      }}
+                                      className="w-full bg-[#080a0f] border border-[#2d3a4f] rounded-lg px-1.5 py-1 text-[10px] text-slate-300 focus:outline-none"
+                                    >
+                                      <option value="">Seleccionar...</option>
+                                      {PRESET_COPA_COUNTRIES.map((c) => (
+                                        <option key={c.code} value={c.code}>{c.name}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Progress / Selection of Winner */}
+                            <div className="bg-black/20 p-3 rounded-lg border border-[#1e293b]/35 flex flex-col sm:flex-row items-center justify-between gap-4">
+                              <div className="flex items-center gap-2">
+                                <Trophy className="w-4 h-4 text-amber-500" />
+                                <span className="text-xs font-bold text-slate-300">Progreso de Eliminatoria Directa</span>
+                              </div>
+
+                              <div className="flex items-center gap-1 w-full sm:w-auto">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase mr-1.5 hidden sm:inline">Definir Ganador:</span>
+                                <div className="grid grid-cols-3 gap-1 w-full sm:w-auto">
+                                  <button
+                                    onClick={() => handleSelectWinner(match.id, 1)}
+                                    className={`px-3 py-1.5 text-[10px] font-black rounded-md cursor-pointer transition-all ${
+                                      match.winner === 1
+                                        ? 'bg-[#ffd200] text-black shadow'
+                                        : 'bg-black/45 text-white hover:bg-slate-800'
+                                    }`}
+                                  >
+                                    👑 E1 Ganó
+                                  </button>
+                                  <button
+                                    onClick={() => handleSelectWinner(match.id, 2)}
+                                    className={`px-3 py-1.5 text-[10px] font-black rounded-md cursor-pointer transition-all ${
+                                      match.winner === 2
+                                        ? 'bg-[#ffd200] text-black shadow'
+                                        : 'bg-black/45 text-white hover:bg-slate-800'
+                                    }`}
+                                  >
+                                    👑 E2 Ganó
+                                  </button>
+                                  <button
+                                    onClick={() => handleSelectWinner(match.id, null)}
+                                    className={`px-2 py-1.5 text-[10px] font-bold rounded-md cursor-pointer transition-all ${
+                                      match.winner === null
+                                        ? 'bg-[#15202f] text-slate-400 border border-slate-700/30'
+                                        : 'bg-rose-500/10 text-rose-400 hover:bg-[#221016]'
+                                    }`}
+                                  >
+                                    Reset
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Quick FAQ info panel */}
           <div className="p-5 bg-gradient-to-r from-sky-500/5 to-purple-500/5 border border-sky-500/10 rounded-2xl flex flex-col gap-2">
             <span className="text-sm font-bold text-slate-200 flex items-center gap-1.5">
@@ -2869,6 +3751,80 @@ export default function App() {
                     </button>
                     <a
                       href={`${window.location.origin}/?mode=overlay&layout=ranking`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition-all flex items-center justify-center cursor-pointer"
+                      title="Probar en pestaña"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+
+                {/* 5. Copa Directa (Cuadrícula del Brackets) */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between select-none">
+                    <span className="text-[10px] font-extrabold text-emerald-500 uppercase tracking-wider">
+                      🏆 Copa: Cuadrícula de Eliminatoria (Bracket)
+                    </span>
+                    <span className="text-[8px] text-slate-500 font-mono">?layout=copa</span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <input
+                      id="obs-copy-copa"
+                      type="text"
+                      readOnly
+                      value={`${window.location.origin}/?mode=overlay&layout=copa`}
+                      className="bg-[#121620] border border-[#232f44] rounded px-2.5 py-1.5 text-[11px] text-sky-400 font-mono flex-1 focus:outline-none"
+                    />
+                    <button
+                      id="btn-copy-copa"
+                      onClick={() => handleCopyLink(`${window.location.origin}/?mode=overlay&layout=copa`, 'copa')}
+                      className={`px-3 py-1.5 rounded text-[11px] font-bold cursor-pointer transition-all flex items-center gap-1 min-w-[85px] justify-center ${
+                        copiedType === 'copa' ? 'bg-emerald-500 text-black border border-emerald-400 shadow-md' : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                      }`}
+                    >
+                      {copiedType === 'copa' ? '¡Listo!' : 'Copiar'}
+                    </button>
+                    <a
+                      href={`${window.location.origin}/?mode=overlay&layout=copa`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition-all flex items-center justify-center cursor-pointer"
+                      title="Probar en pestaña"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+
+                {/* 6. Copa Directa (Partido Activo en Vivo) */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between select-none">
+                    <span className="text-[10px] font-extrabold text-rose-500 uppercase tracking-wider">
+                      🥊 Copa: Partido en Curso en Vivo
+                    </span>
+                    <span className="text-[8px] text-slate-500 font-mono">?layout=copa_match</span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <input
+                      id="obs-copy-copa-match"
+                      type="text"
+                      readOnly
+                      value={`${window.location.origin}/?mode=overlay&layout=copa_match`}
+                      className="bg-[#121620] border border-[#232f44] rounded px-2.5 py-1.5 text-[11px] text-sky-400 font-mono flex-1 focus:outline-none"
+                    />
+                    <button
+                      id="btn-copy-copa-match"
+                      onClick={() => handleCopyLink(`${window.location.origin}/?mode=overlay&layout=copa_match`, 'copa_match')}
+                      className={`px-3 py-1.5 rounded text-[11px] font-bold cursor-pointer transition-all flex items-center gap-1 min-w-[85px] justify-center ${
+                        copiedType === 'copa_match' ? 'bg-emerald-500 text-black border border-emerald-400 shadow-md' : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                      }`}
+                    >
+                      {copiedType === 'copa_match' ? '¡Listo!' : 'Copiar'}
+                    </button>
+                    <a
+                      href={`${window.location.origin}/?mode=overlay&layout=copa_match`}
                       target="_blank"
                       rel="noreferrer"
                       className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition-all flex items-center justify-center cursor-pointer"

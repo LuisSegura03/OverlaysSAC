@@ -12,14 +12,12 @@ export default defineConfig(() => {
       },
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
-      hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
-      // Otherwise ignore overlay_state.json changes to prevent full page reloads when saving state.
-      watch: process.env.DISABLE_HMR === 'true' ? null : {
-        ignored: ['**/overlay_state.json']
-      },
-    },
+      // Completely disable HMR websocket listeners to prevent port clashing/EADDRINUSE
+      hmr: false,
+      // Fully ignore state JSON writes to prevent fallback browser reloads on click
+      watch: {
+        ignored: ['**/overlay_state.json', '**/dist/**']
+      }
+    }
   };
 });

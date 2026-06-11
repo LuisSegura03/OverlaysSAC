@@ -69,6 +69,38 @@ function buildDefaultCategories(existingData?: any, existingCompetitors?: any[],
   return categories;
 }
 
+const DEFAULT_COPA_STATE = {
+  tournamentName: "COPA DE NACIONES",
+  subTitle: "domingo, 14 de junio de 2026",
+  mode: "16teams" as const,
+  matches: [
+    // Octavos de final (Matches 1 to 8)
+    { id: 1, team1: { name: "Ecuador", countryCode: "EC", flagUrl: "https://flagcdn.com/w80/ec.png" }, team2: { name: "Guatemala", countryCode: "GT", flagUrl: "https://flagcdn.com/w80/gt.png" }, winner: null },
+    { id: 2, team1: { name: "Argentina", countryCode: "AR", flagUrl: "https://flagcdn.com/w80/ar.png" }, team2: { name: "Bolivia", countryCode: "BO", flagUrl: "https://flagcdn.com/w80/bo.png" }, winner: null },
+    { id: 3, team1: { name: "Panamá", countryCode: "PA", flagUrl: "https://flagcdn.com/w80/pa.png" }, team2: { name: "Paraguay", countryCode: "PY", flagUrl: "https://flagcdn.com/w80/py.png" }, winner: null },
+    { id: 4, team1: { name: "Brasil 1", countryCode: "BR", flagUrl: "https://flagcdn.com/w80/br.png" }, team2: { name: "Brasil 2", countryCode: "BR", flagUrl: "https://flagcdn.com/w80/br.png" }, winner: null },
+    { id: 5, team1: { name: "Perú", countryCode: "PE", flagUrl: "https://flagcdn.com/w80/pe.png" }, team2: { name: "República Dominicana", countryCode: "DO", flagUrl: "https://flagcdn.com/w80/do.png" }, winner: null },
+    { id: 6, team1: { name: "Colombia 1", countryCode: "CO", flagUrl: "https://flagcdn.com/w80/co.png" }, team2: { name: "Colombia 2", countryCode: "CO", flagUrl: "https://flagcdn.com/w80/co.png" }, winner: null },
+    { id: 7, team1: { name: "Venezuela", countryCode: "VE", flagUrl: "https://flagcdn.com/w80/ve.png" }, team2: { name: "Chile", countryCode: "CL", flagUrl: "https://flagcdn.com/w80/cl.png" }, winner: null },
+    { id: 8, team1: { name: "Colombia 3", countryCode: "CO", flagUrl: "https://flagcdn.com/w80/co.png" }, team2: { name: "Costa Rica", countryCode: "CR", flagUrl: "https://flagcdn.com/w80/cr.png" }, winner: null },
+
+    // Cuartos de final (Matches 9 to 12)
+    { id: 9, team1: { name: "Ganador Octavos 1", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Octavos 2", countryCode: "", flagUrl: "" }, winner: null },
+    { id: 10, team1: { name: "Ganador Octavos 3", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Octavos 4", countryCode: "", flagUrl: "" }, winner: null },
+    { id: 11, team1: { name: "Ganador Octavos 5", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Octavos 6", countryCode: "", flagUrl: "" }, winner: null },
+    { id: 12, team1: { name: "Ganador Octavos 7", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Octavos 8", countryCode: "", flagUrl: "" }, winner: null },
+
+    // Semifinales (Matches 13 to 14)
+    { id: 13, team1: { name: "Ganador Cuartos 1", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Cuartos 2", countryCode: "", flagUrl: "" }, winner: null },
+    { id: 14, team1: { name: "Ganador Cuartos 3", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Cuartos 4", countryCode: "", flagUrl: "" }, winner: null },
+
+    // Final (Match 15)
+    { id: 15, team1: { name: "Ganador Semis 1", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Semis 2", countryCode: "", flagUrl: "" }, winner: null }
+  ],
+  activeMatchId: 1,
+  currentPhase: "octavos" as const
+};
+
 const DEFAULT_STATE: OverlayState = {
   data: {
     competitorName: "Luis Competidor",
@@ -117,6 +149,7 @@ const DEFAULT_STATE: OverlayState = {
   isVisible: true,
   currentCategoryId: "333",
   categories: {},
+  copaState: DEFAULT_COPA_STATE,
   updatedAt: Date.now()
 };
 
@@ -179,6 +212,9 @@ function readState(): OverlayState {
           parsed.styles.eventName = parsed.categories[parsed.currentCategoryId]?.eventName || "WCA South American Championship 2026";
         }
       }
+      if (!parsed.copaState) {
+        parsed.copaState = DEFAULT_COPA_STATE;
+      }
       return parsed;
     }
   } catch (error) {
@@ -226,7 +262,7 @@ async function startServer() {
   // API Route - Update state
   app.post("/api/overlay", (req, res) => {
     try {
-      let { data, styles, competitors, activeCompetitorId, activeCompetitorId2, isVisible, currentCategoryId, categories } = req.body;
+      let { data, styles, competitors, activeCompetitorId, activeCompetitorId2, isVisible, currentCategoryId, categories, copaState } = req.body;
       
       // 1. If we are changing currentCategoryId, first save the current root properties to the old category state
       const targetCategoryId = currentCategoryId || currentState.currentCategoryId || "333";
@@ -266,6 +302,7 @@ async function startServer() {
         isVisible: isVisible !== undefined ? isVisible : currentState.isVisible,
         currentCategoryId: targetCategoryId,
         categories: categories !== undefined ? categories : (currentState.categories || {}),
+        copaState: copaState !== undefined ? copaState : currentState.copaState,
         updatedAt: Date.now()
       };
 

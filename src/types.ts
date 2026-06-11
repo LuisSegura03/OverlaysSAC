@@ -29,9 +29,33 @@ export interface OverlayStyles {
   shadow: 'none' | 'sm' | 'md' | 'lg' | 'overlay';
   animation: 'none' | 'fade' | 'pop' | 'slide';
   width: number; // in pixels
-  layout: 'single' | 'versus' | 'ranking'; // Layout mode
+  layout: 'single' | 'versus' | 'ranking' | 'copa' | 'copa_match'; // Layout mode
   versusLayoutType: 'cards' | 'table'; // Versus layout style format
   eventName: string; // Dynamic championship/event title for table layout
+}
+
+export interface CopaTeam {
+  name: string;
+  countryCode: string;
+  flagUrl: string;
+}
+
+export interface CopaMatch {
+  id: number; // 1 to 15 (or more)
+  team1: CopaTeam;
+  team2: CopaTeam;
+  winner: 1 | 2 | null; // 1 = team1, 2 = team2, null = pending
+  score1?: string;
+  score2?: string;
+}
+
+export interface CopaState {
+  tournamentName: string;
+  subTitle: string; // e.g. "domingo, 14 de junio de 2026"
+  mode: '8teams' | '16teams'; // 8 teams starts at Quarters (matches 9-12), 16 teams starts at Octavos (matches 1-8)
+  matches: CopaMatch[];
+  activeMatchId?: number;
+  currentPhase: 'octavos' | 'cuartos' | 'semis' | 'final' | 'champion';
 }
 
 export interface CategoryState {
@@ -53,6 +77,7 @@ export interface OverlayState {
   isVisible?: boolean; // Toggle overlay visibility
   currentCategoryId?: string; // Active category ID (e.g. "333", "444")
   categories?: Record<string, CategoryState>; // All categories configurations mapped by id
+  copaState?: CopaState;
   updatedAt: number; // Timestamp
 }
 
