@@ -1,6 +1,5 @@
 import fs from "fs/promises";
 import path from "path";
-import { get, put } from "@vercel/blob";
 import type { OverlayState } from "../src/types";
 import { createDefaultState, normalizeOverlayState } from "./overlay-state";
 
@@ -21,6 +20,7 @@ function isVercelRuntime() {
 export async function loadOverlayState(): Promise<OverlayState> {
   try {
     if (isBlobStorageConfigured()) {
+      const { get } = await import("@vercel/blob");
       const blob = await get(STATE_BLOB_PATH, { access: "private" });
       if (!blob?.stream) {
         return createDefaultState();
@@ -47,6 +47,7 @@ export async function saveOverlayState(state: OverlayState): Promise<void> {
   const payload = JSON.stringify(state, null, 2);
 
   if (isBlobStorageConfigured()) {
+    const { put } = await import("@vercel/blob");
     await put(STATE_BLOB_PATH, payload, {
       access: "private",
       allowOverwrite: true,
