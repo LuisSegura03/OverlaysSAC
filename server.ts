@@ -1,246 +1,19 @@
 import express from "express";
 import path from "path";
-import fs from "fs";
 import { createServer as createViteServer } from "vite";
-import { OverlayState } from "./src/types";
-
-// Default configuration on initial load
-const DEFAULT_WCA_CATEGORIES = [
-  { id: "333", name: "3x3x3 Cube", eventName: "WCA 3x3x3 Cube - South American Championship 2026", defaultP1Name: "Luis Competidor", defaultP1Times: ["11.24", "12.50", "9.80", "15.30", "11.10"], defaultP2Name: "Max Park", defaultP2Times: ["3.13", "4.50", "3.80", "3.63", "4.11"] },
-  { id: "222", name: "2x2x2 Cube", eventName: "WCA 2x2x2 Cube - Championship 2026", defaultP1Name: "Zayn Khan", defaultP1Times: ["2.52", "3.10", "2.10", "3.85", "1.99"], defaultP2Name: "Antonin Y.", defaultP2Times: ["1.20", "1.45", "1.10", "1.80", "1.30"] },
-  { id: "444", name: "4x4x4 Cube", eventName: "WCA 4x4x4 Cube - Championship 2026", defaultP1Name: "Luis Competidor", defaultP1Times: ["42.50", "44.10", "39.80", "45.00", "41.20"], defaultP2Name: "Max Park", defaultP2Times: ["17.50", "18.20", "16.80", "19.10", "17.90"] },
-  { id: "555", name: "5x5x5 Cube", eventName: "WCA 5x5x5 Cube - Championship 2026", defaultP1Name: "Luis Competidor", defaultP1Times: ["1:15.20", "1:12.80", "1:18.50", "1:14.30", "1:10.90"], defaultP2Name: "Max Park", defaultP2Times: ["34.50", "36.20", "35.10", "33.90", "34.80"] },
-  { id: "333oh", name: "3x3x3 One-Handed", eventName: "WCA 3x3x3 OH - Championship 2026", defaultP1Name: "Luis Competidor", defaultP1Times: ["18.50", "19.20", "17.90", "21.10", "18.20"], defaultP2Name: "Fawaz A.", defaultP2Times: ["9.80", "10.50", "10.10", "11.20", "9.50"] },
-  { id: "pyram", name: "Pyraminx", eventName: "WCA Pyraminx - Championship 2026", defaultP1Name: "Luis Competidor", defaultP1Times: ["4.50", "5.10", "4.20", "6.20", "4.80"], defaultP2Name: "Steven W.", defaultP2Times: ["1.20", "1.45", "1.10", "1.80", "1.30"] },
-  { id: "skewb", name: "Skewb", eventName: "WCA Skewb - Championship 2026", defaultP1Name: "Luis Competidor", defaultP1Times: ["5.20", "6.10", "4.80", "7.10", "5.50"], defaultP2Name: "Carter K.", defaultP2Times: ["1.80", "2.10", "1.95", "3.20", "1.50"] },
-  { id: "clock", name: "Clock", eventName: "WCA Clock - Championship 2026", defaultP1Name: "Luis Competidor", defaultP1Times: ["8.50", "9.10", "7.80", "10.20", "8.90"], defaultP2Name: "Eryk K.", defaultP2Times: ["3.20", "3.90", "3.50", "4.10", "3.40"] }
-];
-
-function buildDefaultCategories(existingData?: any, existingCompetitors?: any[], existingActive?: string, existingActive2?: string, existingEventName?: string): Record<string, any> {
-  const categories: Record<string, any> = {};
-  DEFAULT_WCA_CATEGORIES.forEach(cat => {
-    if (cat.id === "333" && existingData) {
-      categories[cat.id] = {
-        id: cat.id,
-        name: cat.name,
-        eventName: existingEventName || cat.eventName,
-        data: {
-          competitorName: existingData.competitorName,
-          countryName: existingData.countryName,
-          countryFlagUrl: existingData.countryFlagUrl,
-          times: existingData.times
-        },
-        competitors: existingCompetitors || [],
-        activeCompetitorId: existingActive,
-        activeCompetitorId2: existingActive2
-      };
-    } else {
-      categories[cat.id] = {
-        id: cat.id,
-        name: cat.name,
-        eventName: cat.eventName,
-        data: {
-          competitorName: cat.defaultP1Name,
-          countryName: "Colombia",
-          countryFlagUrl: "https://flagcdn.com/w80/co.png",
-          times: cat.defaultP1Times
-        },
-        competitors: [
-          {
-            id: `comp-${cat.id}-1`,
-            competitorName: cat.defaultP1Name,
-            countryName: "Colombia",
-            countryFlagUrl: "https://flagcdn.com/w80/co.png",
-            times: cat.defaultP1Times
-          },
-          {
-            id: `comp-${cat.id}-2`,
-            competitorName: cat.defaultP2Name,
-            countryName: "Estados Unidos",
-            countryFlagUrl: "https://flagcdn.com/w80/us.png",
-            times: cat.defaultP2Times
-          }
-        ],
-        activeCompetitorId: `comp-${cat.id}-1`,
-        activeCompetitorId2: `comp-${cat.id}-2`
-      };
-    }
-  });
-  return categories;
-}
-
-const DEFAULT_COPA_STATE = {
-  tournamentName: "COPA DE NACIONES",
-  subTitle: "domingo, 14 de junio de 2026",
-  mode: "16teams" as const,
-  matches: [
-    // Octavos de final (Matches 1 to 8)
-    { id: 1, team1: { name: "Ecuador", countryCode: "EC", flagUrl: "https://flagcdn.com/w80/ec.png" }, team2: { name: "Guatemala", countryCode: "GT", flagUrl: "https://flagcdn.com/w80/gt.png" }, winner: null },
-    { id: 2, team1: { name: "Argentina", countryCode: "AR", flagUrl: "https://flagcdn.com/w80/ar.png" }, team2: { name: "Bolivia", countryCode: "BO", flagUrl: "https://flagcdn.com/w80/bo.png" }, winner: null },
-    { id: 3, team1: { name: "Panamá", countryCode: "PA", flagUrl: "https://flagcdn.com/w80/pa.png" }, team2: { name: "Paraguay", countryCode: "PY", flagUrl: "https://flagcdn.com/w80/py.png" }, winner: null },
-    { id: 4, team1: { name: "Brasil 1", countryCode: "BR", flagUrl: "https://flagcdn.com/w80/br.png" }, team2: { name: "Brasil 2", countryCode: "BR", flagUrl: "https://flagcdn.com/w80/br.png" }, winner: null },
-    { id: 5, team1: { name: "Perú", countryCode: "PE", flagUrl: "https://flagcdn.com/w80/pe.png" }, team2: { name: "República Dominicana", countryCode: "DO", flagUrl: "https://flagcdn.com/w80/do.png" }, winner: null },
-    { id: 6, team1: { name: "Colombia 1", countryCode: "CO", flagUrl: "https://flagcdn.com/w80/co.png" }, team2: { name: "Colombia 2", countryCode: "CO", flagUrl: "https://flagcdn.com/w80/co.png" }, winner: null },
-    { id: 7, team1: { name: "Venezuela", countryCode: "VE", flagUrl: "https://flagcdn.com/w80/ve.png" }, team2: { name: "Chile", countryCode: "CL", flagUrl: "https://flagcdn.com/w80/cl.png" }, winner: null },
-    { id: 8, team1: { name: "Colombia 3", countryCode: "CO", flagUrl: "https://flagcdn.com/w80/co.png" }, team2: { name: "Costa Rica", countryCode: "CR", flagUrl: "https://flagcdn.com/w80/cr.png" }, winner: null },
-
-    // Cuartos de final (Matches 9 to 12)
-    { id: 9, team1: { name: "Ganador Octavos 1", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Octavos 2", countryCode: "", flagUrl: "" }, winner: null },
-    { id: 10, team1: { name: "Ganador Octavos 3", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Octavos 4", countryCode: "", flagUrl: "" }, winner: null },
-    { id: 11, team1: { name: "Ganador Octavos 5", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Octavos 6", countryCode: "", flagUrl: "" }, winner: null },
-    { id: 12, team1: { name: "Ganador Octavos 7", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Octavos 8", countryCode: "", flagUrl: "" }, winner: null },
-
-    // Semifinales (Matches 13 to 14)
-    { id: 13, team1: { name: "Ganador Cuartos 1", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Cuartos 2", countryCode: "", flagUrl: "" }, winner: null },
-    { id: 14, team1: { name: "Ganador Cuartos 3", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Cuartos 4", countryCode: "", flagUrl: "" }, winner: null },
-
-    // Final (Match 15)
-    { id: 15, team1: { name: "Ganador Semis 1", countryCode: "", flagUrl: "" }, team2: { name: "Ganador Semis 2", countryCode: "", flagUrl: "" }, winner: null }
-  ],
-  activeMatchId: 1,
-  currentPhase: "octavos" as const
-};
-
-const DEFAULT_STATE: OverlayState = {
-  data: {
-    competitorName: "Luis Competidor",
-    countryName: "Colombia",
-    countryFlagUrl: "https://flagcdn.com/w80/co.png",
-    times: ["11.24", "12.50", "9.80", "15.30", "11.10"]
-  },
-  styles: {
-    fontFamily: "Space Grotesk",
-    fontSize: "base",
-    backgroundColor: "#0d0e12",
-    bgOpacity: 85,
-    textColor: "#ffffff",
-    accentColor: "#38bdf8",
-    borderColor: "#334155",
-    borderWidth: 1,
-    borderRadius: "lg",
-    showStrikeouts: true,
-    showFlag: true,
-    padding: "normal",
-    shadow: "md",
-    animation: "pop",
-    width: 380,
-    layout: "single",
-    versusLayoutType: "cards",
-    eventName: "WCA 3x3x3 Cube - South American Championship 2026"
-  },
-  competitors: [
-    {
-      id: "comp-333-1",
-      competitorName: "Luis Competidor",
-      countryName: "Colombia",
-      countryFlagUrl: "https://flagcdn.com/w80/co.png",
-      times: ["11.24", "12.50", "9.80", "15.30", "11.10"]
-    },
-    {
-      id: "comp-333-2",
-      competitorName: "Max Park",
-      countryName: "Estados Unidos",
-      countryFlagUrl: "https://flagcdn.com/w80/us.png",
-      times: ["3.13", "4.50", "3.80", "3.63", "4.11"]
-    }
-  ],
-  activeCompetitorId: "comp-333-1",
-  activeCompetitorId2: "comp-333-2",
-  isVisible: true,
-  currentCategoryId: "333",
-  categories: {},
-  copaState: DEFAULT_COPA_STATE,
-  updatedAt: Date.now()
-};
-
-DEFAULT_STATE.categories = buildDefaultCategories(
-  DEFAULT_STATE.data,
-  DEFAULT_STATE.competitors,
-  DEFAULT_STATE.activeCompetitorId,
-  DEFAULT_STATE.activeCompetitorId2,
-  DEFAULT_STATE.styles.eventName
-);
-
-const STATE_FILE_PATH = path.join(process.cwd(), "overlay_state.json");
-
-// Read state from disk or return default
-function readState(): OverlayState {
-  try {
-    if (fs.existsSync(STATE_FILE_PATH)) {
-      const fileData = fs.readFileSync(STATE_FILE_PATH, "utf8");
-      const parsed = JSON.parse(fileData);
-      
-      // Ensure backward compatibility migration
-      if (!parsed.competitors || !Array.isArray(parsed.competitors) || parsed.competitors.length === 0) {
-        parsed.competitors = [
-          {
-            id: "comp-333-1",
-            competitorName: parsed.data?.competitorName || "Luis Competidor",
-            countryName: parsed.data?.countryName || "Colombia",
-            countryFlagUrl: parsed.data?.countryFlagUrl || "https://flagcdn.com/w80/co.png",
-            times: parsed.data?.times || ["11.24", "12.50", "9.80", "15.30", "11.10"]
-          }
-        ];
-        parsed.activeCompetitorId = "comp-333-1";
-      }
-      if (!parsed.activeCompetitorId2) {
-        parsed.activeCompetitorId2 = parsed.competitors[1]?.id || parsed.competitors[0]?.id || "comp-333-2";
-      }
-      if (parsed.isVisible === undefined) {
-        parsed.isVisible = true;
-      }
-      if (!parsed.currentCategoryId) {
-        parsed.currentCategoryId = "333";
-      }
-      if (!parsed.categories) {
-        parsed.categories = buildDefaultCategories(
-          parsed.data || DEFAULT_STATE.data,
-          parsed.competitors || DEFAULT_STATE.competitors,
-          parsed.activeCompetitorId || DEFAULT_STATE.activeCompetitorId,
-          parsed.activeCompetitorId2 || DEFAULT_STATE.activeCompetitorId2,
-          parsed.styles?.eventName || DEFAULT_STATE.styles.eventName
-        );
-      }
-      if (parsed.styles) {
-        if (!parsed.styles.layout) {
-          parsed.styles.layout = "single";
-        }
-        if (!parsed.styles.versusLayoutType) {
-          parsed.styles.versusLayoutType = "cards";
-        }
-        if (!parsed.styles.eventName) {
-          parsed.styles.eventName = parsed.categories[parsed.currentCategoryId]?.eventName || "WCA South American Championship 2026";
-        }
-      }
-      if (!parsed.copaState) {
-        parsed.copaState = DEFAULT_COPA_STATE;
-      }
-      return parsed;
-    }
-  } catch (error) {
-    console.error("Failed to read overlay state, using defaults:", error);
-  }
-  return DEFAULT_STATE;
-}
-
-// Write state to disk
-function saveState(state: OverlayState) {
-  try {
-    fs.writeFileSync(STATE_FILE_PATH, JSON.stringify(state, null, 2), "utf8");
-  } catch (error) {
-    console.error("Failed to persist overlay state:", error);
-  }
-}
+import type { OverlayState } from "./src/types";
+import { mergeOverlayState } from "./lib/overlay-state";
+import { loadOverlayState, saveOverlayState } from "./lib/state-storage";
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT || 3000);
 
   // Global Middlewares
   app.use(express.json());
 
   // Memory cache of the state
-  let currentState: OverlayState = readState();
+  let currentState: OverlayState = await loadOverlayState();
 
   // Active SSE clients
   let clients: { id: number; res: express.Response }[] = [];
@@ -256,70 +29,15 @@ async function startServer() {
 
   // API Route - Get current state
   app.get("/api/overlay", (req, res) => {
+    res.setHeader("Cache-Control", "no-store, max-age=0");
     res.json(currentState);
   });
 
   // API Route - Update state
-  app.post("/api/overlay", (req, res) => {
+  app.post("/api/overlay", async (req, res) => {
     try {
-      let { data, styles, competitors, activeCompetitorId, activeCompetitorId2, isVisible, currentCategoryId, categories, copaState } = req.body;
-      
-      // 1. If we are changing currentCategoryId, first save the current root properties to the old category state
-      const targetCategoryId = currentCategoryId || currentState.currentCategoryId || "333";
-      const oldCategoryId = currentState.currentCategoryId || "333";
-
-      if (currentState.categories && currentState.categories[oldCategoryId]) {
-        currentState.categories[oldCategoryId] = {
-          ...currentState.categories[oldCategoryId],
-          data: data !== undefined ? data : currentState.data,
-          competitors: competitors !== undefined ? competitors : currentState.competitors,
-          activeCompetitorId: activeCompetitorId !== undefined ? activeCompetitorId : currentState.activeCompetitorId,
-          activeCompetitorId2: activeCompetitorId2 !== undefined ? activeCompetitorId2 : currentState.activeCompetitorId2,
-          eventName: (styles && styles.eventName !== undefined) ? styles.eventName : (currentState.styles?.eventName || "")
-        };
-      }
-
-      // 2. If a switch actually happened, load the saved category states into root variables!
-      if (currentCategoryId !== undefined && currentCategoryId !== currentState.currentCategoryId) {
-        const nextCat = (categories || currentState.categories || {})[currentCategoryId];
-        if (nextCat) {
-          data = nextCat.data;
-          competitors = nextCat.competitors;
-          activeCompetitorId = nextCat.activeCompetitorId;
-          activeCompetitorId2 = nextCat.activeCompetitorId2;
-          if (!styles) styles = {};
-          styles.eventName = nextCat.eventName || styles.eventName || currentState.styles.eventName;
-        }
-      }
-
-      // Update global state
-      currentState = {
-        data: data !== undefined ? data : currentState.data,
-        styles: styles ? { ...currentState.styles, ...styles } : currentState.styles,
-        competitors: competitors !== undefined ? competitors : currentState.competitors,
-        activeCompetitorId: activeCompetitorId !== undefined ? activeCompetitorId : currentState.activeCompetitorId,
-        activeCompetitorId2: activeCompetitorId2 !== undefined ? activeCompetitorId2 : currentState.activeCompetitorId2,
-        isVisible: isVisible !== undefined ? isVisible : currentState.isVisible,
-        currentCategoryId: targetCategoryId,
-        categories: categories !== undefined ? categories : (currentState.categories || {}),
-        copaState: copaState !== undefined ? copaState : currentState.copaState,
-        updatedAt: Date.now()
-      };
-
-      // 3. Keep the target/current category state perfectly synchronized with newest merged root properties
-      if (currentState.currentCategoryId && currentState.categories && currentState.categories[currentState.currentCategoryId]) {
-        currentState.categories[currentState.currentCategoryId] = {
-          ...currentState.categories[currentState.currentCategoryId],
-          data: currentState.data,
-          competitors: currentState.competitors,
-          activeCompetitorId: currentState.activeCompetitorId,
-          activeCompetitorId2: currentState.activeCompetitorId2,
-          eventName: currentState.styles.eventName || ""
-        };
-      }
-
-      // Persist to file
-      saveState(currentState);
+      currentState = mergeOverlayState(currentState, req.body);
+      await saveOverlayState(currentState);
 
       // Broadcast changes to active overlays in real-time
       broadcastState(currentState);

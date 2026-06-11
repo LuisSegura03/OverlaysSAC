@@ -1,0 +1,627 @@
+{
+  "data": {
+    "competitorName": "David Stiven Benitez Guerra ",
+    "countryName": "Perú",
+    "countryFlagUrl": "https://flagcdn.com/w80/pe.png",
+    "times": [
+      "13.5",
+      "4.78",
+      "10.4",
+      "7.5",
+      "18.3"
+    ]
+  },
+  "styles": {
+    "fontFamily": "Space Grotesk",
+    "fontSize": "lg",
+    "backgroundColor": "#121c60",
+    "bgOpacity": 100,
+    "textColor": "#ffffff",
+    "accentColor": "#facc15",
+    "borderColor": "#ffffff",
+    "borderWidth": 3,
+    "borderRadius": "lg",
+    "showStrikeouts": true,
+    "showFlag": true,
+    "padding": "normal",
+    "shadow": "overlay",
+    "animation": "pop",
+    "width": 380,
+    "layout": "versus",
+    "versusLayoutType": "table",
+    "eventName": "WCA 3x3x3 Cube - South American Championship 2026"
+  },
+  "competitors": [
+    {
+      "id": "comp-333-1",
+      "competitorName": "Luis Competidor",
+      "countryName": "Colombia",
+      "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+      "times": [
+        "11.24",
+        "12.50",
+        "9.80",
+        "15.30",
+        "11.10"
+      ]
+    },
+    {
+      "id": "comp-333-2",
+      "competitorName": "Max Park",
+      "countryName": "Estados Unidos",
+      "countryFlagUrl": "https://flagcdn.com/w80/us.png",
+      "times": [
+        "3.13",
+        "4.50",
+        "3.80",
+        "3.63",
+        "4.11"
+      ]
+    },
+    {
+      "id": "comp-1780680108721",
+      "competitorName": "David Stiven Benitez Guerra ",
+      "countryName": "Perú",
+      "countryFlagUrl": "https://flagcdn.com/w80/pe.png",
+      "times": [
+        "13.5",
+        "4.78",
+        "10.4",
+        "7.5",
+        "18.3"
+      ]
+    },
+    {
+      "id": "comp-1780681599915",
+      "competitorName": "",
+      "countryName": "",
+      "countryFlagUrl": "",
+      "times": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "comp-1780681600617",
+      "competitorName": "",
+      "countryName": "",
+      "countryFlagUrl": "",
+      "times": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "comp-1780681601221",
+      "competitorName": "",
+      "countryName": "",
+      "countryFlagUrl": "",
+      "times": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "comp-1780681601754",
+      "competitorName": "",
+      "countryName": "",
+      "countryFlagUrl": "",
+      "times": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "comp-1780681602314",
+      "competitorName": "",
+      "countryName": "",
+      "countryFlagUrl": "",
+      "times": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "comp-1780681602807",
+      "competitorName": "",
+      "countryName": "",
+      "countryFlagUrl": "",
+      "times": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    }
+  ],
+  "activeCompetitorId": "comp-1780680108721",
+  "activeCompetitorId2": "comp-333-1",
+  "isVisible": true,
+  "currentCategoryId": "333",
+  "categories": {
+    "222": {
+      "id": "222",
+      "name": "2x2x2 Cube",
+      "eventName": "WCA 2x2x2 Cube - Championship 2026",
+      "data": {
+        "competitorName": "Zayn Khan",
+        "countryName": "Colombia",
+        "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+        "times": [
+          "2.52",
+          "3.10",
+          "2.10",
+          "3.85",
+          "1.99"
+        ]
+      },
+      "competitors": [
+        {
+          "id": "comp-222-1",
+          "competitorName": "Zayn Khan",
+          "countryName": "Colombia",
+          "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+          "times": [
+            "2.52",
+            "3.10",
+            "2.10",
+            "3.85",
+            "1.99"
+          ]
+        },
+        {
+          "id": "comp-222-2",
+          "competitorName": "Antonin Y.",
+          "countryName": "Estados Unidos",
+          "countryFlagUrl": "https://flagcdn.com/w80/us.png",
+          "times": [
+            "1.20",
+            "1.45",
+            "1.10",
+            "1.80",
+            "1.30"
+          ]
+        }
+      ],
+      "activeCompetitorId": "comp-222-1",
+      "activeCompetitorId2": "comp-222-2"
+    },
+    "333": {
+      "id": "333",
+      "name": "3x3x3 Cube",
+      "eventName": "WCA 3x3x3 Cube - South American Championship 2026",
+      "data": {
+        "competitorName": "David Stiven Benitez Guerra ",
+        "countryName": "Perú",
+        "countryFlagUrl": "https://flagcdn.com/w80/pe.png",
+        "times": [
+          "13.5",
+          "4.78",
+          "10.4",
+          "7.5",
+          "18.3"
+        ]
+      },
+      "competitors": [
+        {
+          "id": "comp-333-1",
+          "competitorName": "Luis Competidor",
+          "countryName": "Colombia",
+          "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+          "times": [
+            "11.24",
+            "12.50",
+            "9.80",
+            "15.30",
+            "11.10"
+          ]
+        },
+        {
+          "id": "comp-333-2",
+          "competitorName": "Max Park",
+          "countryName": "Estados Unidos",
+          "countryFlagUrl": "https://flagcdn.com/w80/us.png",
+          "times": [
+            "3.13",
+            "4.50",
+            "3.80",
+            "3.63",
+            "4.11"
+          ]
+        },
+        {
+          "id": "comp-1780680108721",
+          "competitorName": "David Stiven Benitez Guerra ",
+          "countryName": "Perú",
+          "countryFlagUrl": "https://flagcdn.com/w80/pe.png",
+          "times": [
+            "13.5",
+            "4.78",
+            "10.4",
+            "7.5",
+            "18.3"
+          ]
+        },
+        {
+          "id": "comp-1780681599915",
+          "competitorName": "",
+          "countryName": "",
+          "countryFlagUrl": "",
+          "times": [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "id": "comp-1780681600617",
+          "competitorName": "",
+          "countryName": "",
+          "countryFlagUrl": "",
+          "times": [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "id": "comp-1780681601221",
+          "competitorName": "",
+          "countryName": "",
+          "countryFlagUrl": "",
+          "times": [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "id": "comp-1780681601754",
+          "competitorName": "",
+          "countryName": "",
+          "countryFlagUrl": "",
+          "times": [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "id": "comp-1780681602314",
+          "competitorName": "",
+          "countryName": "",
+          "countryFlagUrl": "",
+          "times": [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "id": "comp-1780681602807",
+          "competitorName": "",
+          "countryName": "",
+          "countryFlagUrl": "",
+          "times": [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        }
+      ],
+      "activeCompetitorId": "comp-1780680108721",
+      "activeCompetitorId2": "comp-333-1"
+    },
+    "444": {
+      "id": "444",
+      "name": "4x4x4 Cube",
+      "eventName": "WCA 4x4x4 Cube - Championship 2026",
+      "data": {
+        "competitorName": "Luis Competidor",
+        "countryName": "Colombia",
+        "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+        "times": [
+          "42.50",
+          "44.10",
+          "39.80",
+          "45.00",
+          "41.20"
+        ]
+      },
+      "competitors": [
+        {
+          "id": "comp-444-1",
+          "competitorName": "Luis Competidor",
+          "countryName": "Colombia",
+          "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+          "times": [
+            "42.50",
+            "44.10",
+            "39.80",
+            "45.00",
+            "41.20"
+          ]
+        },
+        {
+          "id": "comp-444-2",
+          "competitorName": "Max Park",
+          "countryName": "Estados Unidos",
+          "countryFlagUrl": "https://flagcdn.com/w80/us.png",
+          "times": [
+            "17.50",
+            "18.20",
+            "16.80",
+            "19.10",
+            "17.90"
+          ]
+        }
+      ],
+      "activeCompetitorId": "comp-444-1",
+      "activeCompetitorId2": "comp-444-2"
+    },
+    "555": {
+      "id": "555",
+      "name": "5x5x5 Cube",
+      "eventName": "WCA 5x5x5 Cube - Championship 2026",
+      "data": {
+        "competitorName": "Luis Competidor",
+        "countryName": "Colombia",
+        "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+        "times": [
+          "1:15.20",
+          "1:12.80",
+          "1:18.50",
+          "1:14.30",
+          "1:10.90"
+        ]
+      },
+      "competitors": [
+        {
+          "id": "comp-555-1",
+          "competitorName": "Luis Competidor",
+          "countryName": "Colombia",
+          "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+          "times": [
+            "1:15.20",
+            "1:12.80",
+            "1:18.50",
+            "1:14.30",
+            "1:10.90"
+          ]
+        },
+        {
+          "id": "comp-555-2",
+          "competitorName": "Max Park",
+          "countryName": "Estados Unidos",
+          "countryFlagUrl": "https://flagcdn.com/w80/us.png",
+          "times": [
+            "34.50",
+            "36.20",
+            "35.10",
+            "33.90",
+            "34.80"
+          ]
+        }
+      ],
+      "activeCompetitorId": "comp-555-1",
+      "activeCompetitorId2": "comp-555-2"
+    },
+    "333oh": {
+      "id": "333oh",
+      "name": "3x3x3 One-Handed",
+      "eventName": "WCA 3x3x3 OH - Championship 2026",
+      "data": {
+        "competitorName": "Luis Competidor",
+        "countryName": "Colombia",
+        "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+        "times": [
+          "18.50",
+          "19.20",
+          "17.90",
+          "21.10",
+          "18.20"
+        ]
+      },
+      "competitors": [
+        {
+          "id": "comp-333oh-1",
+          "competitorName": "Luis Competidor",
+          "countryName": "Colombia",
+          "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+          "times": [
+            "18.50",
+            "19.20",
+            "17.90",
+            "21.10",
+            "18.20"
+          ]
+        },
+        {
+          "id": "comp-333oh-2",
+          "competitorName": "Fawaz A.",
+          "countryName": "Estados Unidos",
+          "countryFlagUrl": "https://flagcdn.com/w80/us.png",
+          "times": [
+            "9.80",
+            "10.50",
+            "10.10",
+            "11.20",
+            "9.50"
+          ]
+        }
+      ],
+      "activeCompetitorId": "comp-333oh-1",
+      "activeCompetitorId2": "comp-333oh-2"
+    },
+    "pyram": {
+      "id": "pyram",
+      "name": "Pyraminx",
+      "eventName": "WCA Pyraminx - Championship 2026",
+      "data": {
+        "competitorName": "Luis Competidor",
+        "countryName": "Colombia",
+        "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+        "times": [
+          "4.50",
+          "5.10",
+          "4.20",
+          "6.20",
+          "4.80"
+        ]
+      },
+      "competitors": [
+        {
+          "id": "comp-pyram-1",
+          "competitorName": "Luis Competidor",
+          "countryName": "Colombia",
+          "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+          "times": [
+            "4.50",
+            "5.10",
+            "4.20",
+            "6.20",
+            "4.80"
+          ]
+        },
+        {
+          "id": "comp-pyram-2",
+          "competitorName": "Steven W.",
+          "countryName": "Estados Unidos",
+          "countryFlagUrl": "https://flagcdn.com/w80/us.png",
+          "times": [
+            "1.20",
+            "1.45",
+            "1.10",
+            "1.80",
+            "1.30"
+          ]
+        }
+      ],
+      "activeCompetitorId": "comp-pyram-1",
+      "activeCompetitorId2": "comp-pyram-2"
+    },
+    "skewb": {
+      "id": "skewb",
+      "name": "Skewb",
+      "eventName": "WCA Skewb - Championship 2026",
+      "data": {
+        "competitorName": "Luis Competidor",
+        "countryName": "Colombia",
+        "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+        "times": [
+          "5.20",
+          "6.10",
+          "4.80",
+          "7.10",
+          "5.50"
+        ]
+      },
+      "competitors": [
+        {
+          "id": "comp-skewb-1",
+          "competitorName": "Luis Competidor",
+          "countryName": "Colombia",
+          "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+          "times": [
+            "5.20",
+            "6.10",
+            "4.80",
+            "7.10",
+            "5.50"
+          ]
+        },
+        {
+          "id": "comp-skewb-2",
+          "competitorName": "Carter K.",
+          "countryName": "Estados Unidos",
+          "countryFlagUrl": "https://flagcdn.com/w80/us.png",
+          "times": [
+            "1.80",
+            "2.10",
+            "1.95",
+            "3.20",
+            "1.50"
+          ]
+        }
+      ],
+      "activeCompetitorId": "comp-skewb-1",
+      "activeCompetitorId2": "comp-skewb-2"
+    },
+    "clock": {
+      "id": "clock",
+      "name": "Clock",
+      "eventName": "WCA Clock - Championship 2026",
+      "data": {
+        "competitorName": "Luis Competidor",
+        "countryName": "Colombia",
+        "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+        "times": [
+          "8.50",
+          "9.10",
+          "7.80",
+          "10.20",
+          "8.90"
+        ]
+      },
+      "competitors": [
+        {
+          "id": "comp-clock-1",
+          "competitorName": "Luis Competidor",
+          "countryName": "Colombia",
+          "countryFlagUrl": "https://flagcdn.com/w80/co.png",
+          "times": [
+            "8.50",
+            "9.10",
+            "7.80",
+            "10.20",
+            "8.90"
+          ]
+        },
+        {
+          "id": "comp-clock-2",
+          "competitorName": "Eryk K.",
+          "countryName": "Estados Unidos",
+          "countryFlagUrl": "https://flagcdn.com/w80/us.png",
+          "times": [
+            "3.20",
+            "3.90",
+            "3.50",
+            "4.10",
+            "3.40"
+          ]
+        }
+      ],
+      "activeCompetitorId": "comp-clock-1",
+      "activeCompetitorId2": "comp-clock-2"
+    }
+  },
+  "updatedAt": 1780686136984
+}

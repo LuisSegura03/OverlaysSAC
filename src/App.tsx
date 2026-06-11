@@ -30,6 +30,28 @@ import {
 } from 'lucide-react';
 import { OverlayState, OverlayData, OverlayStyles, POPULAR_COUNTRIES, CountryPreset, Competitor } from './types';
 
+const OVERLAY_POLL_INTERVAL_MS = 2000;
+
+async function fetchOverlayState(): Promise<OverlayState> {
+  const response = await fetch('/api/overlay', {
+    cache: 'no-store',
+    headers: {
+      Accept: 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Overlay API request failed with status ${response.status}`);
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    throw new Error('Overlay API returned a non-JSON response');
+  }
+
+  return response.json();
+}
+
 const PRESET_COPA_COUNTRIES = [
   { name: "Colombia", code: "CO", flag: "https://flagcdn.com/w80/co.png" },
   { name: "Ecuador", code: "EC", flag: "https://flagcdn.com/w80/ec.png" },
@@ -225,36 +247,58 @@ export default function App() {
 
   // Load state on mount (SSE stream gets loaded and synced)
   useEffect(() => {
-    // Initial fetch to populate state immediately
-    fetch('/api/overlay')
-      .then((res) => res.json())
-      .then((state: OverlayState) => {
+    let isCancelled = false;
+
+    const syncState = async (hideLoader = false) => {
+      try {
+        const state = await fetchOverlayState();
+        if (isCancelled) {
+          return;
+        }
+
         setOverlayState(state);
         setCustomFlagUrl(state.data.countryFlagUrl);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Failed to load overlay state', err);
-        setLoading(false);
-      });
-
-    // Connect real-time Server-Sent Events channel
-    const eventSource = new EventSource('/api/events');
-    eventSource.onmessage = (event) => {
-      try {
-        const state: OverlayState = JSON.parse(event.data);
-        setOverlayState(state);
-      } catch (e) {
-        console.error('Error parsing live SSE event', e);
+      } catch (err) {
+        if (!isCancelled) {
+          console.error('Failed to load overlay state', err);
+        }
+      } finally {
+        if (!isCancelled && !hideLoader) {
+          setLoading(false);
+        }
       }
     };
 
-    eventSource.onerror = (e) => {
-      console.warn('SSE connection disconnected. Re-trying...', e);
-    };
+    void syncState();
+
+    if (import.meta.env.DEV) {
+      const eventSource = new EventSource('/api/events');
+      eventSource.onmessage = (event) => {
+        try {
+          const state: OverlayState = JSON.parse(event.data);
+          setOverlayState(state);
+        } catch (e) {
+          console.error('Error parsing live SSE event', e);
+        }
+      };
+
+      eventSource.onerror = (e) => {
+        console.warn('SSE connection disconnected. Re-trying...', e);
+      };
+
+      return () => {
+        isCancelled = true;
+        eventSource.close();
+      };
+    }
+
+    const pollId = window.setInterval(() => {
+      void syncState(true);
+    }, OVERLAY_POLL_INTERVAL_MS);
 
     return () => {
-      eventSource.close();
+      isCancelled = true;
+      window.clearInterval(pollId);
     };
   }, []);
 
